@@ -37,6 +37,8 @@ export {
   optionalSurfaceOwnership,
   selectedGeneratedModuleIds,
   excludedOwnedPaths,
+  excludedOwnedPathsForApplication,
+  providerSurfaceOwnership,
   type GeneratedModuleId,
   type OptionalSurfaceOwnership,
 } from './ownership.js';
@@ -52,7 +54,11 @@ export {
   type CapabilityDefinition,
   type CapabilityResolution,
 } from './capabilities.js';
-export { capabilityIds, productPresetIds } from '@hipster-stack/schema';
+export {
+  capabilityIds,
+  designChoices,
+  productPresetIds,
+} from '@hipster-stack/schema';
 export {
   applicationDefinitionFromRecipe,
   normalizeRecipe,
@@ -86,6 +92,7 @@ export type {
   ProductPresetId,
   ProviderDefinition,
   ProviderId,
+  ProviderSelection,
   RecipeInput,
   ResourceDefinition,
   RoleDefinition,

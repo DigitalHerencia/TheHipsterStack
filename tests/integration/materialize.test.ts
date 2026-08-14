@@ -107,9 +107,11 @@ describe('createProject', () => {
         await readFile(path.join(target, 'hipsterstack.json'), 'utf8'),
       ),
     ).toMatchObject({
-      schemaVersion: 1,
-      name: 'acme-product',
-      product: 'bare-golden-app',
+      applicationDefinition: {
+        schemaVersion: 1,
+        identity: { packageName: 'acme-product' },
+        preset: 'bare-golden-app',
+      },
     });
     await expect(
       stat(path.join(target, 'app', '(public)', 'pricing')),
@@ -129,7 +131,9 @@ describe('createProject', () => {
       path.join('app', '(tenant)', 'ai', 'page.tsx'),
       path.join('app', 'api', 'cloudinary', 'webhooks', 'route.ts'),
     ]) {
-      await expect(stat(path.join(target, surface))).resolves.toBeTruthy();
+      await expect(stat(path.join(target, surface))).rejects.toMatchObject({
+        code: 'ENOENT',
+      });
     }
     for (const surface of [
       path.join('app', '(onboarding)'),
@@ -212,6 +216,63 @@ describe('createProject', () => {
     await assertLocalImportsResolve(target);
   });
 
+  it('materializes a provider-free public application from explicit intent', async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), 'hipster-stack-static-'));
+    const target = path.join(root, 'public-site');
+    await createProject({
+      applicationDefinition: {
+        schemaVersion: 1,
+        preset: 'bare-golden-app',
+        identity: { packageName: 'public-site' },
+        providers: {
+          authentication: 'none',
+          persistence: { technology: 'none', provider: 'none' },
+          commerce: 'none',
+        },
+        authorization: { model: 'none' },
+        capabilities: {
+          include: ['marketing'],
+          exclude: [
+            'organizations',
+            'invitations',
+            'rbac',
+            'billing',
+            'stripeConnect',
+            'onboarding',
+            'admin',
+            'sampleDomain',
+          ],
+        },
+      },
+      targetDirectory: target,
+      git: { initialize: false },
+      install: { enabled: false },
+    });
+    const packageJson = JSON.parse(
+      await readFile(path.join(target, 'package.json'), 'utf8'),
+    ) as { dependencies: Record<string, string> };
+    expect(packageJson.dependencies).not.toHaveProperty('@clerk/nextjs');
+    expect(packageJson.dependencies).not.toHaveProperty('@prisma/client');
+    expect(packageJson.dependencies).not.toHaveProperty('stripe');
+    for (const removed of [
+      path.join('app', '(auth)'),
+      path.join('app', '(tenant)'),
+      'prisma',
+      'proxy.ts',
+    ]) {
+      await expect(stat(path.join(target, removed))).rejects.toMatchObject({
+        code: 'ENOENT',
+      });
+    }
+    await expect(
+      readFile(path.join(target, 'app', 'layout.tsx'), 'utf8'),
+    ).resolves.not.toContain('AppProviders');
+    await expect(
+      readFile(path.join(target, '.env.example'), 'utf8'),
+    ).resolves.not.toMatch(/CLERK_|DATABASE_URL|STRIPE_/);
+    await assertLocalImportsResolve(target);
+  });
+
   it('wires product identity and semantic design choices into known surfaces', async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), 'hipster-stack-design-'));
     const target = path.join(root, 'signal-desk');
@@ -258,7 +319,7 @@ describe('createProject', () => {
         path.join(target, 'components', 'shells', 'tenant-shell.tsx'),
         'utf8',
       ),
-    ).resolves.toContain('loadedVibesDesign.navigation === "sidebar"');
+    ).resolves.toContain("loadedVibesDesign.navigation === 'sidebar'");
     await expect(
       readFile(path.join(target, 'content', 'site.ts'), 'utf8'),
     ).resolves.toContain('name: loadedVibesProduct.name');

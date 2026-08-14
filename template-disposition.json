@@ -1,6 +1,6 @@
 [
   {
-    "path": "gitignore.template",
+    "path": ".gitignore",
     "disposition": "generator",
     "included": true,
     "reason": "Pack-safe source transformed to generated .gitignore by the initializer."
@@ -1483,12 +1483,6 @@
   },
   {
     "path": "proxy.ts",
-    "disposition": "core",
-    "included": true,
-    "reason": "Canonical application, governance, validation, or delivery source."
-  },
-  {
-    "path": "public/TEMPLATE-MANIFEST.md",
     "disposition": "core",
     "included": true,
     "reason": "Canonical application, governance, validation, or delivery source."

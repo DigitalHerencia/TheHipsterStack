@@ -84,8 +84,11 @@ export function applicationDefinitionFromRecipe(
       description: recipe.identity.description,
     },
     capabilities: { include, exclude },
+    authorization: {
+      model: recipe.modules.rbac === false ? 'none' : 'rbac',
+    },
     presentation: recipe.design,
-    outputOverrides: { artifactSets: {} },
+    outputOverrides: { artifactSets: {}, artifacts: {} },
   };
 }
 
@@ -124,6 +127,9 @@ function modulesFromCapabilities(
     stripeConnect: selected.has('stripeConnect'),
     onboarding: selected.has('onboarding'),
     admin: selected.has('admin'),
+    uploads: selected.has('uploads'),
+    ai: selected.has('ai'),
+    maps: selected.has('maps'),
     marketing: selected.has('marketing'),
     sampleDomain: selected.has('sampleDomain') ? 'projects' : false,
     governance: selected.has('governance'),
